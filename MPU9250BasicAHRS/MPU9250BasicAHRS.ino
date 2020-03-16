@@ -1,30 +1,3 @@
-/* MPU9250 Basic Example Code
-  by: Kris Winer
-  date: April 1, 2014
-  license: Beerware - Use this code however you'd like. If you
-  find it useful you can buy me a beer some time.
-
-  Demonstrate basic MPU-9250 functionality including parameterizing the register addresses, initializing the sensor,
-  getting properly scaled accelerometer, gyroscope, and magnetometer data out. Added display functions to
-  allow display to on breadboard monitor. Addition of 9 DoF sensor fusion using open source Madgwick and
-  Mahony filter algorithms. Sketch runs on the 3.3 V 8 MHz Pro Mini and the Teensy 3.1.
-
-  SDA and SCL should have external pull-up resistors (to 3.3V).
-  10k resistors are on the EMSENSR-9250 breakout board.
-
-  Hardware setup:
-  MPU9250 Breakout --------- Arduino
-  VDD ---------------------- 3.3V
-  VDDI --------------------- 3.3V
-  SDA ----------------------- A4
-  SCL ----------------------- A5
-  GND ---------------------- GND
-
-  Note: The MPU9250 is an I2C sensor and uses the Arduino Wire library.
-  Because the sensor is not 5V tolerant, we are using a 3.3 V 8 MHz Pro Mini or a 3.3 V Teensy 3.1.
-  We have disabled the internal pull-ups used by the Wire library in the Wire.h/twi.c utility file.
-  We are also using the 400 kHz fast I2C mode by setting the TWI_FREQ  to 400000L /twi.h utility file.
-*/
 #include <SPI.h>
 #include <Wire.h>
 // See also MPU-9250 Register Map and Descriptions, Revision 4.0, RM-MPU-9250A-00, Rev. 1.4, 9/9/2013 for registers not listed in
@@ -48,6 +21,8 @@
 #define AK8963_ASAX           0x10  // Fuse ROM x-axis sensitivity adjustment value
 #define AK8963_ASAY           0x11  // Fuse ROM y-axis sensitivity adjustment value
 #define AK8963_ASAZ           0x12  // Fuse ROM z-axis sensitivity adjustment value
+
+
 
 #define SELF_TEST_X_GYRO      0x00
 #define SELF_TEST_Y_GYRO      0x01
@@ -158,7 +133,7 @@
 #define SIGNAL_PATH_RESET     0x68
 #define MOT_DETECT_CTRL       0x69
 #define USER_CTRL             0x6A  // Bit 7 enable DMP, bit 3 reset DMP
-#define PWR_MGMT_1            0x6B // Device defaults to the SLEEP mode
+#define PWR_MGMT_1            0x6B  // Device defaults to the SLEEP mode
 #define PWR_MGMT_2            0x6C
 #define DMP_BANK              0x6D  // Activates a specific bank in the DMP
 #define DMP_RW_PNT            0x6E  // Set read/write pointer to a specific start address in specified DMP bank
@@ -275,7 +250,8 @@ void setup()
 
   // Read the WHO_AM_I register, this is a good test of communication
   byte c = readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);  // Read WHO_AM_I register for MPU-9250
-  Serial.println("I am "); Serial.print(c, HEX); Serial.print(" I should be "); Serial.println(0x71, HEX);
+
+  Serial.print("I am "); Serial.print(c, HEX); Serial.print(" I should be "); Serial.println(0x71, HEX);
 
   delay(2000);
 
@@ -284,24 +260,19 @@ void setup()
     Serial.println("MPU9250 is online...");
 
     MPU9250SelfTest(SelfTest); // Start by performing self test and reporting values
-    Serial.print("x-axis self test: acceleration trim within : "); Serial.print(SelfTest[0], 1); Serial.println("% of factory value");
-    Serial.print("y-axis self test: acceleration trim within : "); Serial.print(SelfTest[1], 1); Serial.println("% of factory value");
-    Serial.print("z-axis self test: acceleration trim within : "); Serial.print(SelfTest[2], 1); Serial.println("% of factory value");
-    Serial.print("x-axis self test: gyration trim within : "); Serial.print(SelfTest[3], 1); Serial.println("% of factory value");
-    Serial.print("y-axis self test: gyration trim within : "); Serial.print(SelfTest[4], 1); Serial.println("% of factory value");
-    Serial.print("z-axis self test: gyration trim within : "); Serial.print(SelfTest[5], 1); Serial.println("% of factory value");
+    Serial.print("x-axis self test: acceleration trim within: "); Serial.print(SelfTest[0], 1); Serial.println("% of factory value");
+    Serial.print("y-axis self test: acceleration trim within: "); Serial.print(SelfTest[1], 1); Serial.println("% of factory value");
+    Serial.print("z-axis self test: acceleration trim within: "); Serial.print(SelfTest[2], 1); Serial.println("% of factory value");
+    Serial.print("x-axis self test: gyration trim within: "); Serial.print(SelfTest[3], 1); Serial.println("% of factory value");
+    Serial.print("y-axis self test: gyration trim within: "); Serial.print(SelfTest[4], 1); Serial.println("% of factory value");
+    Serial.print("z-axis self test: gyration trim within: "); Serial.print(SelfTest[5], 1); Serial.println("% of factory value");
 
     calibrateMPU9250(gyroBias, accelBias); // Calibrate gyro and accelerometers, load biases in bias registers
+
     Serial.println("MPU9250 bias");
-    Serial.println(" x   y   z  ");
-    Serial.println((int)(1000 * accelBias[0]));
-    Serial.println((int)(1000 * accelBias[1]));
-    Serial.println((int)(1000 * accelBias[2]));
-    Serial.println("mg");
-    Serial.println(gyroBias[0], 1);
-    Serial.println(gyroBias[1], 1);
-    Serial.println(gyroBias[2], 1);
-    Serial.println("o/s");
+    Serial.println(" x  y   z  ");
+    Serial.print((int)(1000 * accelBias[0])); Serial.print("  "); Serial.print((int)(1000 * accelBias[1])); Serial.print("  "); Serial.print((int)(1000 * accelBias[2])); Serial.println(" milliG");
+    Serial.print(gyroBias[0], 1); Serial.print("  "); Serial.print(gyroBias[1], 1); Serial.print("  "); Serial.print(gyroBias[2], 1); Serial.println(" deg/s");
 
     delay(2000);
 
@@ -317,23 +288,17 @@ void setup()
 
     initAK8963(magCalibration); Serial.println("AK8963 initialized for active data mode...."); // Initialize device for active mode read of magnetometer
 
-    magcalMPU9250(magBias, magScale);
+    //temporary enabled function to autocalibration. Once got several samples we can const these values.
 
+    magcalMPU9250(magBias, magScale);  // Calibrate magnetometer, load biases in bias registers
 
     if (SerialDebug) {
-      //  Serial.println("Calibration values: ");
+      Serial.println("Calibration values: ");
       Serial.print("X-Axis sensitivity adjustment value "); Serial.println(magCalibration[0], 2);
       Serial.print("Y-Axis sensitivity adjustment value "); Serial.println(magCalibration[1], 2);
       Serial.print("Z-Axis sensitivity adjustment value "); Serial.println(magCalibration[2], 2);
     }
-    Serial.println("AK8963");
-    Serial.print("ASAX ");
-    Serial.println(magCalibration[0], 2);
-    Serial.print("ASAY ");
-    Serial.println(magCalibration[1], 2);
-    Serial.print("ASAZ ");
-    Serial.println(magCalibration[2], 2);
-    delay(1000);
+    delay(5000);
   }
   else
   {
