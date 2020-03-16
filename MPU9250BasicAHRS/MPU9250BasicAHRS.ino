@@ -250,7 +250,7 @@ void setup()
 
   // Read the WHO_AM_I register, this is a good test of communication
   byte c = readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);  // Read WHO_AM_I register for MPU-9250
-
+  
   Serial.print("I am "); Serial.print(c, HEX); Serial.print(" I should be "); Serial.println(0x71, HEX);
 
   delay(2000);
@@ -268,11 +268,11 @@ void setup()
     Serial.print("z-axis self test: gyration trim within: "); Serial.print(SelfTest[5], 1); Serial.println("% of factory value");
 
     calibrateMPU9250(gyroBias, accelBias); // Calibrate gyro and accelerometers, load biases in bias registers
-
+    
     Serial.println("MPU9250 bias");
     Serial.println(" x  y   z  ");
     Serial.print((int)(1000 * accelBias[0])); Serial.print("  "); Serial.print((int)(1000 * accelBias[1])); Serial.print("  "); Serial.print((int)(1000 * accelBias[2])); Serial.println(" milliG");
-    Serial.print(gyroBias[0], 1); Serial.print("  "); Serial.print(gyroBias[1], 1); Serial.print("  "); Serial.print(gyroBias[2], 1); Serial.println(" deg/s");
+    Serial.print(gyroBias[0], 1); Serial.print("  "); Serial.print(gyroBias[1], 1); Serial.print("  ");Serial.print(gyroBias[2], 1); Serial.println(" deg/s");
 
     delay(2000);
 
@@ -289,7 +289,7 @@ void setup()
     initAK8963(magCalibration); Serial.println("AK8963 initialized for active data mode...."); // Initialize device for active mode read of magnetometer
 
     //temporary enabled function to autocalibration. Once got several samples we can const these values.
-
+    
     magcalMPU9250(magBias, magScale);  // Calibrate magnetometer, load biases in bias registers
 
     if (SerialDebug) {
@@ -298,6 +298,10 @@ void setup()
       Serial.print("Y-Axis sensitivity adjustment value "); Serial.println(magCalibration[1], 2);
       Serial.print("Z-Axis sensitivity adjustment value "); Serial.println(magCalibration[2], 2);
     }
+    Serial.println("AK8963");
+    Serial.print("X-Axis sensitivity adjustment value: "); Serial.println(magCalibration[0], 2);
+    Serial.print("Y-Axis sensitivity adjustment value: "); Serial.println(magCalibration[1], 2);
+    Serial.print("Z-Axis sensitivity adjustment value: "); Serial.println(magCalibration[2], 2);
     delay(5000);
   }
   else
