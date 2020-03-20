@@ -188,7 +188,7 @@ enum Mscale {
 uint8_t Gscale = GFS_2000DPS;
 uint8_t Ascale = AFS_16G;
 uint8_t Mscale = MFS_16BITS; // Choose either 14-bit or 16-bit magnetometer resolution
-uint8_t Mmode = 0x06;        // 2 for 8 Hz, 6 for 100 Hz continuous magnetometer data read
+uint8_t Mmode = 0x02;        // 2 for 8 Hz, 6 for 100 Hz continuous magnetometer data read
 float aRes, gRes, mRes;      // scale resolutions per LSB for the sensors
 
 // Pin definitions
@@ -831,6 +831,7 @@ void magcalMPU9250(float * dest1, float * dest2) {
     }
     if (Mmode == 0x02) delay(135); // at 8 Hz ODR, new mag data is available every 125 ms
     if (Mmode == 0x06) delay(12); // at 100 Hz ODR, new mag data is available every 10 ms
+    Serial.println (ii);
   }
 
   // Get hard iron correction
