@@ -161,8 +161,8 @@
 #define AK8963_ADDRESS        0x0C   //  Address of magnetometer
 #endif
 
-#define AHRS true         // set to false for basic data read
-#define SerialDebug true   // set to true to get Serial output for debugging
+#define AHRS true                     // set to false for basic data read
+#define SerialDebug true              // set to true to get Serial output for debugging
 
 // Set initial input parameters
 enum Ascale {
@@ -187,7 +187,11 @@ enum Mscale {
 // Specify sensor full scale
 uint8_t Gscale = GFS_2000DPS;
 uint8_t Ascale = AFS_16G;
+<<<<<<< HEAD
 uint8_t Mscale = MFS_16BITS; // Choose either 14-bit or 16-bit magnetometer resolution
+=======
+uint8_t Mscale = MFS_14BITS; // Choose either 14-bit or 16-bit magnetometer resolution
+>>>>>>> 888d4c575f402475b00a09357167e332e02103c1
 uint8_t Mmode = 0x02;        // 2 for 8 Hz, 6 for 100 Hz continuous magnetometer data read
 float aRes, gRes, mRes;      // scale resolutions per LSB for the sensors
 
@@ -234,6 +238,7 @@ uint32_t Now = 0;        // used to calculate integration interval
 float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor data values
 float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
 float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for Mahony method
+
 float magBias[3], magScale[3];
 
 void setup()
@@ -250,7 +255,7 @@ void setup()
 
   // Read the WHO_AM_I register, this is a good test of communication
   byte c = readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);  // Read WHO_AM_I register for MPU-9250
-  
+
   Serial.print("I am "); Serial.print(c, HEX); Serial.print(" I should be "); Serial.println(0x71, HEX);
 
   delay(2000);
@@ -268,11 +273,11 @@ void setup()
     Serial.print("z-axis self test: gyration trim within: "); Serial.print(SelfTest[5], 1); Serial.println("% of factory value");
 
     calibrateMPU9250(gyroBias, accelBias); // Calibrate gyro and accelerometers, load biases in bias registers
-    
+
     Serial.println("MPU9250 bias");
     Serial.println(" x  y   z  ");
     Serial.print((int)(1000 * accelBias[0])); Serial.print("  "); Serial.print((int)(1000 * accelBias[1])); Serial.print("  "); Serial.print((int)(1000 * accelBias[2])); Serial.println(" milliG");
-    Serial.print(gyroBias[0], 1); Serial.print("  "); Serial.print(gyroBias[1], 1); Serial.print("  ");Serial.print(gyroBias[2], 1); Serial.println(" deg/s");
+    Serial.print(gyroBias[0], 1); Serial.print("  "); Serial.print(gyroBias[1], 1); Serial.print("  "); Serial.print(gyroBias[2], 1); Serial.println(" deg/s");
 
     delay(2000);
 
@@ -288,8 +293,6 @@ void setup()
 
     initAK8963(magCalibration); Serial.println("AK8963 initialized for active data mode...."); // Initialize device for active mode read of magnetometer
 
-    //temporary enabled function to autocalibration. Once got several samples we can const these values.
-    
     magcalMPU9250(magBias, magScale);  // Calibrate magnetometer, load biases in bias registers
 
     if (SerialDebug) {
@@ -335,9 +338,9 @@ void loop()
     readMagData(magCount);  // Read the x/y/z adc values
     getMres();
 
-    //    magbias[0] = +0.;  // User environmental x-axis correction in milliGauss, should be automatically calculated
-    //    magbias[1] = +0.;  // User environmental x-axis correction in milliGauss
-    //    magbias[2] = +0.;  // User environmental x-axis correction in milliGauss
+    magbias[0] = +231.808;  // User environmental x-axis correction in milliGauss, should be automatically calculated
+    magbias[1] = +11.419;  // User environmental x-axis correction in milliGauss
+    magbias[2] = +411.046;  // User environmental x-axis correction in milliGauss
 
 
     // Calculate the magnetometer values in milliGauss
