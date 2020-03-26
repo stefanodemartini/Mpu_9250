@@ -21,6 +21,7 @@
 #define AK8963_ASAX           0x10  // Fuse ROM x-axis sensitivity adjustment value
 #define AK8963_ASAY           0x11  // Fuse ROM y-axis sensitivity adjustment value
 #define AK8963_ASAZ           0x12  // Fuse ROM z-axis sensitivity adjustment value
+
 #define SELF_TEST_X_GYRO      0x00
 #define SELF_TEST_Y_GYRO      0x01
 #define SELF_TEST_Z_GYRO      0x02
@@ -52,9 +53,11 @@
 #define ACCEL_CONFIG2         0x1D
 #define LP_ACCEL_ODR          0x1E
 #define WOM_THR               0x1F
+
 #define MOT_DUR               0x20  // Duration counter threshold for motion interrupt generation, 1 kHz rate, LSB = 1 ms
 #define ZMOT_THR              0x21  // Zero-motion detection threshold bits [7:0]
 #define ZRMOT_DUR             0x22  // Duration counter threshold for zero motion interrupt generation, 16 Hz rate, LSB = 64 ms
+
 #define FIFO_EN               0x23
 #define I2C_MST_CTRL          0x24
 #define I2C_SLV0_ADDR         0x25
@@ -311,8 +314,6 @@ void setup()
     while (1) ; // Loop forever if communication doesn't happen
   }
 }
-
-
 
 
 void loop()
