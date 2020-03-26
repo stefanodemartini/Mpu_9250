@@ -225,8 +225,9 @@ float pitch, yaw, roll;
 float deltat = 0.0f, sum = 0.0f;        // integration interval for both filter schemes
 uint32_t lastUpdate = 0, firstUpdate = 0; // used to calculate integration interval
 uint32_t Now = 0;        // used to calculate integration interval
-
+float a12, a22, a31, a32, a33;            // rotation matrix coefficients for Euler angles and gravity components
 float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor data values
+float lin_ax, lin_ay, lin_az;             // linear acceleration (acceleration with gravity component subtracted)
 float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
 float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for Mahony method
 
@@ -451,14 +452,23 @@ void loop()
       tempCount = readTempData();  // Read the adc values
       temperature = ((float) tempCount) / 333.87 + 21.0; // Temperature in degrees Centigrade
 
-      yaw   = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);
-      pitch = -asin(2.0f * (q[1] * q[3] - q[0] * q[2]));
-      roll  = atan2(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
-
+      a12 =   2.0f * (q[1] * q[2] + q[0] * q[3]);
+      a22 =   q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3];
+      a31 =   2.0f * (q[0] * q[1] + q[2] * q[3]);
+      a32 =   2.0f * (q[1] * q[3] - q[0] * q[2]);
+      a33 =   q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3];
+      pitch = -asinf(a32);
+      roll  = atan2f(a31, a33);
+      yaw   = atan2f(a12, a22);
       pitch *= 180.0f / PI;
       yaw   *= 180.0f / PI;
       yaw   += 2.9; // Declination at Chiavari, Italy is 2° 54' E  ± 0° 21'  changing by  0° 9' E per year
+      if (yaw < 0) yaw   += 360.0f; // Ensure yaw stays between 0 and 360
+
       roll  *= 180.0f / PI;
+      lin_ax = ax + a31;
+      lin_ay = ay + a32;
+      lin_az = az - a33;
 
       if (SerialDebug) {
         Serial.print("Yaw, Pitch, Roll: ");
@@ -468,12 +478,26 @@ void loop()
         Serial.print(", ");
         Serial.println(roll, 2);
 
-        Serial.print("rate = "); Serial.print((float)sumCount / sum, 2); Serial.println(" Hz");
+        Serial.print("Grav_x, Grav_y, Grav_z: ");
+        Serial.print(-a31 * 1000, 2);
+        Serial.print(", ");
+        Serial.print(-a32 * 1000, 2);
+        Serial.print(", ");
+        Serial.print(a33 * 1000, 2);  Serial.println(" mg");
+        Serial.print("Lin_ax, Lin_ay, Lin_az: ");
+        Serial.print(lin_ax * 1000, 2);
+        Serial.print(", ");
+        Serial.print(lin_ay * 1000, 2);
+        Serial.print(", ");
+        Serial.print(lin_az * 1000, 2);  Serial.println(" mg");
+
+        Serial.print("rate = "); Serial.print((float)sumCount / sum, 2); Serial.println(" Hz");;
       }
 
       // Print temperature in degrees Centigrade
       Serial.print("Temperature is ");  Serial.print(temperature, 1);  Serial.println(" degrees C"); // Print T values to tenths of s degree C
-
+      
+      digitalWrite(myLed, !digitalRead(myLed));
       count = millis();
       sumCount = 0;
       sum = 0;
