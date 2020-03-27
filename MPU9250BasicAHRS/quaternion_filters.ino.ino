@@ -90,8 +90,6 @@ void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, 
 
 }
 
-
-
 // Similar to Madgwick scheme but uses proportional and integral filtering on the error between estimated reference vectors and
 // measured ones.
 void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz)
