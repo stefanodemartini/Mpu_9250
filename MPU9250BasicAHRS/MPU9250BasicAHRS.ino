@@ -226,6 +226,7 @@ uint32_t count = 0;
 uint32_t sumCount = 0; // used to control display output rate
 
 float pitch, yaw, roll;
+float a12, a22, a31, a32, a33;
 float deltat = 0.0f;
 float sum = 0.0f;                           // integration interval for both filter schemes
 uint32_t lastUpdate = 0;
@@ -302,14 +303,14 @@ void loop()
 {
   // If intPin goes high, all data registers have new data
   if (readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {  // On interrupt, check if data ready interrupt
-    
+
     readAccelData(accelCount);  // Read the x/y/z adc values
     getAres();
 
     // Now we'll calculate the acceleration value into actual g's
-    ax = (float)accelCount[0] * aRes; // - accelBias[0];  // get actual g value, this depends on scale being set
-    ay = (float)accelCount[1] * aRes; // - accelBias[1];
-    az = (float)accelCount[2] * aRes; // - accelBias[2];
+    ax = (float)accelCount[0] * aRes ;//- accelBias[0];  // get actual g value, this depends on scale being set
+    ay = (float)accelCount[1] * aRes ;//- accelBias[1];
+    az = (float)accelCount[2] * aRes ;//- accelBias[2];
 
     readGyroData(gyroCount);  // Read the x/y/z adc values
     getGres();
@@ -330,9 +331,9 @@ void loop()
   }
 
   Now = micros();
-  //deltat è la differenza fra il valore di now appena valorizzato sopra e il valore di lastupdate valorizzato di seguito nel loop precendente 
-  deltat = ((Now - lastUpdate) / 1000000.0f); // set integration time by time elapsed since last filter update. 
-  
+  //deltat è la differenza fra il valore di now appena valorizzato sopra e il valore di lastupdate valorizzato di seguito nel loop precendente
+  deltat = ((Now - lastUpdate) / 1000000.0f); // set integration time by time elapsed since last filter update.
+
   lastUpdate = Now;
   sum += deltat; // sum for averaging filter update rate. Aggiungo deltat a sum
   sumCount++; //aggiungo 1 a sunCout ogni volta che passo di qui
@@ -344,26 +345,29 @@ void loop()
   // This is ok by aircraft orientation standards!
   // Pass gyro rate as rad/s
 
-  // MadgwickQuaternionUpdate(ax, ay, az, gx*PI/180.0f, gy*PI/180.0f, gz*PI/180.0f,  my,  mx, mz);
+  MadgwickQuaternionUpdate(ax, ay, az, gx*PI/180.0f, gy*PI/180.0f, gz*PI/180.0f,  my,  mx, mz);
+  //  MahonyQuaternionUpdate(ax, ay, az, gx * PI / 180.0f, gy * PI / 180.0f, gz * PI / 180.0f, my, mx, mz);
+  //   MahonyQuaternionUpdate(ax, ay, az, gx * PI / 180.0f, gy * PI / 180.0f, gz * PI / 180.0f, my, mx, -mz);
+ // MadgwickQuaternionUpdate(-ax, ay, az, gx, -gy, -gz, my, -mx, mz);
 
-  MahonyQuaternionUpdate(ax, ay, az, gx * PI / 180.0f, gy * PI / 180.0f, gz * PI / 180.0f, my, mx, mz);
-  
+
+
   if (!AHRS) {
     delt_t = millis() - count;
     if (SerialDebug) {
       // Print acceleration values in milligs!
-      Serial.print("X-acceleration: "); Serial.print(1000 * ax); Serial.print(" mg ");
-      Serial.print("Y-acceleration: "); Serial.print(1000 * ay); Serial.print(" mg ");
-      Serial.print("Z-acceleration: "); Serial.print(1000 * az); Serial.println(" mg ");
+      Serial.print("X-acceleration: "); Serial.print(1000 * ax); Serial.print(" mg "); Serial.print("\t");
+      Serial.print("Y-acceleration: "); Serial.print(1000 * ay); Serial.print(" mg "); Serial.print("\t");
+      Serial.print("Z-acceleration: "); Serial.print(1000 * az); Serial.print(" mg "); Serial.print("\t");
 
       // Print gyro values in degree/sec
-      Serial.print("X-gyro rate: "); Serial.print(gx, 3); Serial.print(" degrees/sec ");
-      Serial.print("Y-gyro rate: "); Serial.print(gy, 3); Serial.print(" degrees/sec ");
-      Serial.print("Z-gyro rate: "); Serial.print(gz, 3); Serial.println(" degrees/sec");
+      Serial.print("X-gyro rate: "); Serial.print(gx, 3); Serial.print(" deg/sec ");Serial.print("\t");
+      Serial.print("Y-gyro rate: "); Serial.print(gy, 3); Serial.print(" deg/sec ");Serial.print("\t");
+      Serial.print("Z-gyro rate: "); Serial.print(gz, 3); Serial.print(" deg/sec");Serial.print("\t");
 
       // Print mag values in milli Gauss
-      Serial.print("X-mag field: "); Serial.print(mx); Serial.print(" mG ");
-      Serial.print("Y-mag field: "); Serial.print(my); Serial.print(" mG ");
+      Serial.print("X-mag field: "); Serial.print(mx); Serial.print(" mG ");Serial.print("\t");
+      Serial.print("Y-mag field: "); Serial.print(my); Serial.print(" mG ");Serial.print("\t");
       Serial.print("Z-mag field: "); Serial.print(mz); Serial.println(" mG");
 
       tempCount = readTempData();  // Read the adc values
@@ -408,30 +412,33 @@ void loop()
     // Tait-Bryan angles as well as Euler angles are non-commutative; that is, to get the correct orientation the rotations must be applied in the correct order which for this configuration is yaw, pitch, and then roll.
     // For more see http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles which has additional links.
 
+    a12 =   2.0f * (q[1] * q[2] + q[0] * q[3]);
+    a22 =   q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3];
+    a31 =   2.0f * (q[0] * q[1] + q[2] * q[3]);
+    a32 =   2.0f * (q[1] * q[3] - q[0] * q[2]);
+    a33 =   q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3];
+
+
     // Yaw is the angle between Sensor x-axis and Earth magnetic North (or true North if corrected for local declination, looking down on the sensor positive yaw is counterclockwise.
-    yaw   = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);
+    yaw   = atan2(a12, a22);
     yaw   *= 180.0f / PI;
     yaw   += 2.9; // Declination at Chiavari, Italy
     if (yaw < 0) yaw   += 360.0f; // Ensure yaw stays between 0 and 360
 
     // Pitch is angle between sensor x-axis and Earth ground plane, toward the Earth is positive, up toward the sky is negative.
-    pitch = -asin(2.0f * (q[1] * q[3] - q[0] * q[2]));
+    pitch = -asin(a32);
     pitch *= 180.0f / PI;
 
     // Roll is angle between sensor y-axis and Earth ground plane, y-axis up is positive roll.
-    roll  = atan2(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
+    roll  = atan2(a31, a33);
     roll  *= 180.0f / PI;
 
     if (SerialDebug) {
       Serial.print("Yaw="); Serial.print(yaw, 2); Serial.print("\t");
       Serial.print("Pitch="); Serial.print(pitch, 2); Serial.print("\t");
-      Serial.print("Roll="); Serial.print(roll, 2); Serial.print("\t");
-      Serial.print("Sumcount = "); Serial.print(sumCount); Serial.print("\t"); 
-      Serial.print("Sum = "); Serial.print(sum); Serial.print("\t"); 
-      
-      Serial.print("Rate = "); Serial.print((float)sumCount / sum, 2); Serial.println(" Hz");
-    }
-  
+      Serial.print("Roll="); Serial.print(roll, 2); Serial.println("\t");
+     }
+
     count = millis();
     sumCount = 0;
     sum = 0;

@@ -122,7 +122,7 @@ void calibrateAK8963(float * dest1, float * dest2)
 {
   uint16_t ii = 0, sample_count = 0;
   int32_t mag_bias[3] = {0, 0, 0}, mag_scale[3] = {0, 0, 0};
-  int16_t mag_max[3] = {0x8000, 0x8000, 0x8000}, mag_min[3] = {0x7FFF, 0x7FFF, 0x7FFF}, mag_temp[3] = {0, 0, 0};
+  int16_t mag_max[3] = {0x7FFF, 0x7FFF, 0x7FFF}, mag_min[3] = {0x7FFF, 0x7FFF, 0x7FFF}, mag_temp[3] = {0, 0, 0};
   getMres();
   Serial.println("Mag Calibration: Wave device in a figure eight until done!");
 
@@ -177,6 +177,7 @@ void initMPU9250()
   // minimum delay time for this setting is 5.9 ms, which means sensor fusion update rates cannot  be higher than 1 / 0.0059 = 170 Hz
   // DLPF_CFG = bits 2:0 = 011; this limits the sample rate to 1000 Hz for both
   // With the MPU9250, it is possible to get gyro sample rates of 32 kHz (!), 8 kHz, or 1 kHz
+  
   writeByte(MPU9250_ADDRESS, CONFIG, 0x03);
 
   // Set sample rate = gyroscope output rate/(1 + SMPLRT_DIV)
@@ -317,11 +318,9 @@ void calibrateMPU9250(float * dest1, float * dest2)
   dest1[1] = (float) gyro_bias[1] / (float) gyrosensitivity;
   dest1[2] = (float) gyro_bias[2] / (float) gyrosensitivity;
 
-  // Construct the accelerometer biases for push to the hardware accelerometer bias registers. These registers contain
-  // factory trim values which must be added to the calculated accelerometer biases; on boot up these registers will hold
-  // non-zero values. In addition, bit 0 of the lower byte must be preserved since it is used for temperature
-  // compensation calculations. Accelerometer bias registers expect bias input as 2048 LSB per g, so that
-  // the accelerometer biases calculated above must be divided by 8.
+  // Construct the accelerometer biases for push to the hardware accelerometer bias registers. These registers contain factory trim values which must be added to the calculated accelerometer biases;
+  // on boot up these registers will hold non-zero values. In addition, bit 0 of the lower byte must be preserved since it is used for temperature compensation calculations.
+  //Accelerometer bias registers expect bias input as 2048 LSB per g, so that the accelerometer biases calculated above must be divided by 8.
 
   int32_t accel_bias_reg[3] = {0, 0, 0}; // A place to hold the factory accelerometer trim biases
   readBytes(MPU9250_ADDRESS, XA_OFFSET_H, 2, &data[0]); // Read factory accelerometer trim values
